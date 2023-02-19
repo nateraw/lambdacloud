@@ -10,19 +10,21 @@ pip install lambdacloud
 
 ## Usage
 
-#### Authenticate
+<details>
+<summary>Authenticate</summary>
 
 ```python
 from lambdacloud import login
 
 login(token="<your token>")
 ```
+</details>
 
-#### Create an Instance
+<details>
+<summary>Create an Instance</summary>
 
 See [here](#list-available-instance-types) for a list of available instance types. Also, see [here](#list-available-ssh-keys) for a list of available ssh keys.
 
-```python
 ```python
 from lambdacloud import create_instance
 
@@ -32,8 +34,10 @@ print(instance_id)
 ["<instance id>"]
 """
 ```
+</details>
 
-#### Delete an Instance
+<details>
+<summary>Delete an Instance</summary>
 
 ```python
 from lambdacloud import delete_instance
@@ -41,7 +45,10 @@ from lambdacloud import delete_instance
 delete_instance("<instance id>")
 ```
 
-#### List Instances
+</details>
+
+<details>
+<summary>List Instances</summary>
 
 ```python
 from lambdacloud import list_instances
@@ -50,7 +57,10 @@ instances = list_instances()
 print(instances)
 ```
 
-#### List Available Instance Types
+</details>
+
+<details>
+<summary>List Available Instance Types</summary>
 
 ```python
 from lambdacloud import list_instance_types
@@ -70,7 +80,10 @@ InstanceType(name=gpu_8x_v100, price_cents_per_hour=440, description=8x Tesla V1
 instance_types = list_instance_types(show_all=True)
 ```
 
-#### List Available SSH Keys
+</details>
+
+<details>
+<summary>List Available SSH Keys</summary>
 
 ```python
 from lambdacloud import list_ssh_keys
@@ -84,7 +97,10 @@ SshKey(name=my-ssh-key)
 """
 ```
 
-#### Add an SSH Key
+</details>
+
+<details>
+<summary>Add an SSH Key</summary>
 
 ```python
 from lambdacloud import add_ssh_key
@@ -99,6 +115,8 @@ from lambdacloud import add_ssh_key_from_file
 
 add_ssh_key_from_file("my-ssh-key", "<path to public key file>")
 ```
+
+</details>
 
 ## Credits
 
