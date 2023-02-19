@@ -142,8 +142,6 @@ class LambdaApi:
             file_system_names=file_system_names,
             quantity=quantity,
         )
-
-        print(json.dumps(payload, indent=2, sort_keys=False))
         r = requests.post(url, headers=headers, data=json.dumps(payload))
         r.raise_for_status()
         return r.json()["data"]["instance_ids"]
