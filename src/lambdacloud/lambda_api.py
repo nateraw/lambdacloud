@@ -1,5 +1,6 @@
 import json
 from dataclasses import dataclass
+from typing import List, Optional, Union
 
 import requests
 
@@ -20,12 +21,23 @@ class InstanceType:
         return f"InstanceType(name={self.name}, price_cents_per_hour={self.price_cents_per_hour}, description={self.description}, specs={self.specs}, regions_with_capacity_available={self.regions_with_capacity_available})"
 
 
+@dataclass
+class SshKey:
+    def __init__(self, id: str, name: str, public_key: str):
+        self.id = id
+        self.name = name
+        self.public_key = public_key
+
+    def __repr__(self):
+        return f"SshKey(name={self.name})"
+
+
 class LambdaApi:
-    def __init__(self, endpoint=None, token=None):
+    def __init__(self, endpoint: Optional[str] = None, token: Optional[str] = None):
         self.endpoint = endpoint or ENDPOINT
         self.token = token
 
-    def list_instance_types(self, token=None, show_all=False):
+    def list_instance_types(self, show_all: bool = False, token=None):
         url = self.endpoint + "instance-types"
         headers = self._build_headers(token)
         r = requests.get(url, headers=headers)
@@ -41,14 +53,30 @@ class LambdaApi:
 
     def create_instance(
         self,
-        instance_type_name,
-        *,
-        ssh_key_names=None,
-        file_system_names=None,
-        region_name=None,
-        quantity=1,
-        token=None,
+        instance_type_name: str,
+        ssh_key_names: Union[str, List[str]],
+        file_system_names: Optional[Union[str, List[str]]] = None,
+        region_name: Optional[str] = None,
+        quantity: int = 1,
+        token: Optional[str] = None,
     ):
+        """Create a new Lambda Cloud VM instance.
+
+        Args:
+            instance_type_name (str): The name of the instance type to create.
+            ssh_key_names (Union[str, List[str]]): The name (or names) of the SSH key to use for the instance.
+            file_system_names (Optional[Union[str, List[str]]], optional): Name of file system to attach to instance. Defaults to None.
+            region_name (Optional[str], optional): Region to launch the instance in. Defaults to None.
+            quantity (int, optional): Number of instances of this type to create. Defaults to 1.
+            token (Optional[str], optional): Your Lambda Labs API token. Defaults to None.
+
+        Raises:
+            ValueError: If the instance type is not found.
+            ValueError: If the region is not available for the instance type.
+
+        Returns:
+            dict: The response from the API.
+        """
         url = self.endpoint + "instance-operations/launch"
         headers = self._build_headers(token)
         instances = self.list_instance_types(token=token, show_all=False)
@@ -81,21 +109,39 @@ class LambdaApi:
         r.raise_for_status()
         return r.json()["data"]["instance_ids"]
 
-    def list_instances(self, token=None):
+    def list_instances(self, token: Optional[str] = None):
+        """List all instances in your account.
+
+        Args:
+            token (Optional[str], optional): Your Lambda Labs API token. Defaults to None.
+
+        Returns:
+            List[dict]: The response from the API.
+        """
         url = self.endpoint + "instances"
         headers = self._build_headers(token)
         r = requests.get(url, headers=headers)
         r.raise_for_status()
         return r.json()["data"]
 
-    def get_instance(self, instance_id, token=None):
+    def get_instance(self, instance_id: str, token: Optional[str] = None):
+        """Get information about a specific instance.
+
+        Args:
+            instance_id (str): The name of the instance to get information about.
+            token (Optional[str], optional): Your Lambda Labs API token. Defaults to None.
+
+        Returns:
+            dict: The response from the API.
+        """
         url = self.endpoint + "instances/" + instance_id
         headers = self._build_headers(token)
         r = requests.get(url, headers=headers)
         r.raise_for_status()
         return r.json()["data"]
 
-    def delete_instance(self, instance_id, token=None):
+    def delete_instance(self, instance_id, token: Optional[str] = None):
+        """Delete an instance."""
         url = self.endpoint + "instance-operations/terminate"
         headers = self._build_headers(token)
         payload = {"instance_ids": [instance_id]}
@@ -103,14 +149,17 @@ class LambdaApi:
         r.raise_for_status()
         return r.json()["data"]
 
-    def list_ssh_keys(self, token=None):
+    def list_ssh_keys(self, token: Optional[str] = None):
+        """List all SSH keys in your account."""
         url = self.endpoint + "ssh-keys"
         headers = self._build_headers(token)
         r = requests.get(url, headers=headers)
         r.raise_for_status()
-        return r.json()["data"]
+        data = r.json()["data"]
+        return [SshKey(**d) for d in data]
 
-    def add_ssh_key(self, name, public_key, token=None):
+    def add_ssh_key(self, name: str, public_key: str, token: Optional[str] = None):
+        """Add an SSH key to your account."""
         url = self.endpoint + "ssh-keys"
         headers = self._build_headers(token)
         payload = {"name": name, "public_key": public_key}
@@ -118,14 +167,13 @@ class LambdaApi:
         r.raise_for_status()
         return r.json()["data"]
 
-    def list_file_systems(self, token=None):
-        url = self.endpoint + "file-systems"
-        headers = self._build_headers(token)
-        r = requests.get(url, headers=headers)
-        r.raise_for_status()
-        return r.json()["data"]
+    def add_ssh_key_from_file(self, name, public_key_file, token: Optional[str] = None):
+        """Add an SSH key to your account from a file."""
+        with open(public_key_file, "r") as f:
+            public_key = f.read()
+        return self.add_ssh_key(name, public_key, token=token)
 
-    def _build_headers(self, token=None):
+    def _build_headers(self, token: Optional[str] = None):
         if token is None:
             token = self.token
 
@@ -142,4 +190,8 @@ api = LambdaApi()
 list_instance_types = api.list_instance_types
 create_instance = api.create_instance
 list_instances = api.list_instances
+get_instance = api.get_instance
 delete_instance = api.delete_instance
+list_ssh_keys = api.list_ssh_keys
+add_ssh_key = api.add_ssh_key
+add_ssh_key_from_file = api.add_ssh_key_from_file

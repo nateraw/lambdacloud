@@ -15,6 +15,7 @@ install_requires = [
     "requests",
     "tqdm>=4.42.1",
     "fire",
+    "tabulate",
 ]
 
 extras = {}
