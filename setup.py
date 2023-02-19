@@ -44,4 +44,5 @@ setup(
     extras_require=extras,
     package_dir={"": "src"},
     packages=find_packages("src"),
+    entry_points={"console_scripts": ["lambdacloud=lambdacloud.cli:main"]},
 )

@@ -64,6 +64,13 @@ class LambdaApi:
             payload["region_name"] = region_name
         else:
             raise ValueError("Must specify region_name")
+
+        if isinstance(ssh_key_names, str):
+            ssh_key_names = [ssh_key_names]
+
+        if isinstance(file_system_names, str):
+            file_system_names = [file_system_names]
+
         payload["instance_type_name"] = instance_type_name
         payload["ssh_key_names"] = ssh_key_names or []
         payload["file_system_names"] = file_system_names or []
