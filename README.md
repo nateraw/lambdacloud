@@ -11,7 +11,9 @@ pip install lambdacloud
 ## Usage
 
 <details>
-<summary>Authenticate</summary>
+<summary>Authenticate (Important!)</summary>
+
+If you authenticate with either of the below options, your token will be saved in `~/.cache/lambda/token` and will be used automatically for future requests. Otherwise, you'll need to pass `token` to each request.
 
 Via Python
 
