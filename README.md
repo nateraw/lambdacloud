@@ -13,11 +13,21 @@ pip install lambdacloud
 <details>
 <summary>Authenticate</summary>
 
+Via Python
+
 ```python
 from lambdacloud import login
 
 login(token="<your token>")
 ```
+
+Or, using the CLI
+
+
+```
+lambdacloud login <your-token>
+```
+
 </details>
 
 <details>
@@ -102,13 +112,15 @@ SshKey(name=my-ssh-key)
 <details>
 <summary>Add an SSH Key</summary>
 
+Add SSH Key from a String
+
 ```python
 from lambdacloud import add_ssh_key
 
 add_ssh_key("my-ssh-key", "<public key>")
 ```
 
-#### Add an SSH Key from a File
+Alternatively, Add an SSH Key from a File
 
 ```python
 from lambdacloud import add_ssh_key_from_file
