@@ -42,6 +42,7 @@ class Instance:
         status: str,
         ssh_key_names: List[str],
         file_system_names: List[str],
+        name: Optional[str] = None,
         hostname: Optional[str] = None,
         ip: Optional[str] = None,
         jupyter_token: Optional[str] = None,
@@ -53,13 +54,16 @@ class Instance:
         self.status = status
         self.ssh_key_names = ssh_key_names
         self.file_system_names = file_system_names
+        self.name = name
         self.hostname = hostname
         self.ip = ip
         self.jupyter_token = jupyter_token
         self.jupyter_url = jupyter_url
 
     def __repr__(self):
-        return f"Instance(id={self.id}, status={self.status})"
+        if self.name is None:
+            return f"Instance(id={self.id}, status={self.status})"
+        return f"Instance(id={self.id}, name={self.name}, status={self.status})"
 
     def delete(self, token: Optional[str] = None):
         return delete_instance(self.id, token=token)
