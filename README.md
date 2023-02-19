@@ -23,7 +23,7 @@ login(token="<your token>")
 <details>
 <summary>Create an Instance</summary>
 
-See [here](#list-available-instance-types) for a list of available instance types. Also, see [here](#list-available-ssh-keys) for a list of available ssh keys.
+See "list-available-instance-types" for a list of available instance types. Also, see "list-available-ssh-keys" for a list of available ssh keys.
 
 ```python
 from lambdacloud import create_instance
