@@ -12,4 +12,4 @@ from .lambda_api import (
 )
 
 
-__version__ = "0.0.2"
+__version__ = "0.0.3.dev0"
