@@ -18,7 +18,7 @@ class InstanceType:
         self.regions_with_capacity_available = regions_with_capacity_available
 
     def __repr__(self):
-        return f"InstanceType(name={self.name}, price_cents_per_hour={self.price_cents_per_hour}, description={self.description}, specs={self.specs}, regions_with_capacity_available={self.regions_with_capacity_available})"
+        return f"InstanceType(name={self.name}, price_cents_per_hour={self.price_cents_per_hour}, description={self.description})"
 
 
 @dataclass
@@ -30,6 +30,39 @@ class SshKey:
 
     def __repr__(self):
         return f"SshKey(name={self.name})"
+
+
+@dataclass
+class Instance:
+    def __init__(
+        self,
+        id: str,
+        region: dict,
+        instance_type: dict,
+        status: str,
+        ssh_key_names: List[str],
+        file_system_names: List[str],
+        hostname: Optional[str] = None,
+        ip: Optional[str] = None,
+        jupyter_token: Optional[str] = None,
+        jupyter_url: Optional[str] = None,
+    ):
+        self.id = id
+        self.region = region
+        self.instance_type = instance_type
+        self.status = status
+        self.ssh_key_names = ssh_key_names
+        self.file_system_names = file_system_names
+        self.hostname = hostname
+        self.ip = ip
+        self.jupyter_token = jupyter_token
+        self.jupyter_url = jupyter_url
+
+    def __repr__(self):
+        return f"Instance(id={self.id}, status={self.status})"
+
+    def delete(self, token: Optional[str] = None):
+        return delete_instance(self.id, token=token)
 
 
 class LambdaApi:
@@ -84,25 +117,27 @@ class LambdaApi:
         if len(instance) == 0:
             raise ValueError(f"Instance type {instance_type_name} not found")
         instance = instance[0]
-        if region_name is None:
-            region_name = instance.regions_with_capacity_available[0]["name"]
 
-        payload = {}
-        if region_name is not None:
-            payload["region_name"] = region_name
-        else:
-            raise ValueError("Must specify region_name")
+        if region_name is None:
+            if len(instance.regions_with_capacity_available) == 0:
+                raise ValueError(f"No regions available for instance type {instance_type_name}")
+            region_name = instance.regions_with_capacity_available[0]["name"]
 
         if isinstance(ssh_key_names, str):
             ssh_key_names = [ssh_key_names]
 
         if isinstance(file_system_names, str):
             file_system_names = [file_system_names]
+        elif file_system_names is None:
+            file_system_names = []
 
-        payload["instance_type_name"] = instance_type_name
-        payload["ssh_key_names"] = ssh_key_names or []
-        payload["file_system_names"] = file_system_names or []
-        payload["quantity"] = quantity
+        payload = dict(
+            region_name=region_name,
+            instance_type_name=instance_type_name,
+            ssh_key_names=ssh_key_names,
+            file_system_names=file_system_names,
+            quantity=quantity,
+        )
 
         print(json.dumps(payload, indent=2, sort_keys=False))
         r = requests.post(url, headers=headers, data=json.dumps(payload))
@@ -122,7 +157,9 @@ class LambdaApi:
         headers = self._build_headers(token)
         r = requests.get(url, headers=headers)
         r.raise_for_status()
-        return r.json()["data"]
+        data = r.json()["data"]
+        instances = [Instance(**d) for d in data]
+        return instances
 
     def get_instance(self, instance_id: str, token: Optional[str] = None):
         """Get information about a specific instance.
@@ -138,7 +175,8 @@ class LambdaApi:
         headers = self._build_headers(token)
         r = requests.get(url, headers=headers)
         r.raise_for_status()
-        return r.json()["data"]
+        data = r.json()["data"]
+        return Instance(**data)
 
     def delete_instance(self, instance_id, token: Optional[str] = None):
         """Delete an instance."""
